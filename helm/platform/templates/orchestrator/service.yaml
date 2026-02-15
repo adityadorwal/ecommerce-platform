@@ -1,0 +1,19 @@
+{{- if .Values.orchestrator.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: orchestrator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: orchestrator
+    component: backend
+spec:
+  type: {{ .Values.orchestrator.service.type }}
+  ports:
+  - port: {{ .Values.orchestrator.service.port }}
+    targetPort: {{ .Values.orchestrator.service.targetPort }}
+    protocol: TCP
+    name: http
+  selector:
+    app: orchestrator
+{{- end }}

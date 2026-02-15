@@ -1,0 +1,110 @@
+# Default values for ecommerce-platform
+
+# Global settings
+global:
+  domain: "local"  # Change to your domain in production
+  storageClass: "standard"  # Change to your storage class
+
+# Dashboard (React Frontend)
+dashboard:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ecommerce-dashboard  # Build with: cd dashboard && docker build -t ecommerce-dashboard:latest .
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+    host: "dashboard.local"
+    tls:
+      enabled: false
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Orchestrator (Backend API)
+orchestrator:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ecommerce-orchestrator  # Build with: cd orchestrator && docker build -t ecommerce-orchestrator:latest .
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 4000
+  env:
+    - name: NODE_ENV
+      value: "production"
+    - name: PORT
+      value: "4000"
+    - name: STORE_NAMESPACE
+      value: "ecommerce-stores"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  # Service account with K8s API permissions
+  serviceAccount:
+    create: true
+    name: "orchestrator-sa"
+
+# Store defaults (applied to all provisioned stores)
+storeDefaults:
+  wordpress:
+    image:
+      repository: wordpress
+      tag: "6.4-apache"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    storage:
+      size: "5Gi"
+  
+  mysql:
+    image:
+      repository: mysql
+      tag: "8.0"
+    rootPassword: "changeme_root_password"  # CHANGE IN PRODUCTION
+    database: "wordpress"
+    user: "wordpress"
+    password: "changeme_wp_password"  # CHANGE IN PRODUCTION
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+    storage:
+      size: "10Gi"
+  
+  ingress:
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+    tls:
+      enabled: false
+
+# Ingress controller (optional - install if not present)
+ingressController:
+  install: false  # Set to true if you need to install nginx-ingress

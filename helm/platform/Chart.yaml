@@ -1,0 +1,13 @@
+apiVersion: v2
+name: ecommerce-platform
+description: Multi-tenant e-commerce platform for Kubernetes
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ecommerce
+  - woocommerce
+  - kubernetes
+  - multi-tenant
+maintainers:
+  - name: Platform Team

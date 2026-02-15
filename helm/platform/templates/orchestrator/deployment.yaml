@@ -1,0 +1,54 @@
+{{- if .Values.orchestrator.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: orchestrator
+    component: backend
+spec:
+  replicas: {{ .Values.orchestrator.replicaCount }}
+  selector:
+    matchLabels:
+      app: orchestrator
+  template:
+    metadata:
+      labels:
+        app: orchestrator
+    spec:
+      serviceAccountName: {{ .Values.orchestrator.serviceAccount.name }}
+      containers:
+      - name: orchestrator
+        image: "{{ .Values.orchestrator.image.repository }}:{{ .Values.orchestrator.image.tag }}"
+        imagePullPolicy: {{ .Values.orchestrator.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.orchestrator.service.targetPort }}
+          name: http
+        env:
+        {{- range .Values.orchestrator.env }}
+        - name: {{ .name }}
+          value: {{ .value | quote }}
+        {{- end }}
+        - name: HELM_VALUES
+          value: |
+            {{- toYaml .Values.storeDefaults | nindent 12 }}
+        - name: GLOBAL_DOMAIN
+          value: {{ .Values.global.domain | quote }}
+        - name: STORAGE_CLASS
+          value: {{ .Values.global.storageClass | quote }}
+        resources:
+          {{- toYaml .Values.orchestrator.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+{{- end }}

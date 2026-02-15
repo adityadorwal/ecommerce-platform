@@ -1,0 +1,71 @@
+# Production overrides
+
+global:
+  domain: "yourdomain.com"  # CHANGE THIS
+  storageClass: "gp2"  # or your cloud provider's storage class
+
+dashboard:
+  replicaCount: 2
+  ingress:
+    host: "dashboard.yourdomain.com"  # CHANGE THIS
+    tls:
+      enabled: true
+      secretName: "dashboard-tls"
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+orchestrator:
+  replicaCount: 2
+  env:
+    - name: NODE_ENV
+      value: "production"
+    - name: PORT
+      value: "4000"
+    - name: STORE_NAMESPACE
+      value: "ecommerce-stores"
+    - name: LOG_LEVEL
+      value: "info"
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+storeDefaults:
+  wordpress:
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+    storage:
+      size: "20Gi"
+  
+  mysql:
+    rootPassword: ""  # USE KUBERNETES SECRET
+    password: ""  # USE KUBERNETES SECRET
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "250m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+    storage:
+      size: "50Gi"
+  
+  ingress:
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/proxy-body-size: "128m"
+    tls:
+      enabled: true
